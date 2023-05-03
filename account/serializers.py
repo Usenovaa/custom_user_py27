@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from .utils import send_activation_code
 
 
@@ -55,6 +55,46 @@ class ActivationSerializer(serializers.Serializer):
                 'Пользователь не найден'
             )
         return attrs
+
+    def activate(self):
+        email = self.validated_data.get('email')
+        user = User.objects.get(email=email)
+        user.is_active = True
+        user.activation_code = ''
+        user.save()
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate_email(self, email):
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким email не найден'
+            )
+        return email
+    
+    def validate(self, data):
+        request = self.context.get('request')
+        email = data.get('email')
+        password = data.get('password')
+        if email and password:
+            user = authenticate(
+                username=email, 
+                password=password, request=request)
+            if not user:
+                raise serializers.ValidationError(
+                    'Не верный email или пароль'
+                )
+        else:
+            raise serializers.ValidationError(
+                'Email и пароль обязательны к заполнению'
+            )
+        data['user'] = user
+        return data
+    
+
 
 
 

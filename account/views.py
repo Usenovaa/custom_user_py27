@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 
 from .permissions import IsActivePermissions
-from .serializers import RegistrationSerializer
+from .serializers import RegistrationSerializer, ActivationSerializer, LoginSerializer
 
 
 class RegistrationView(APIView):
@@ -16,22 +16,22 @@ class RegistrationView(APIView):
         serializer.save()
         return Response('Аккаунт успешно создан', status=200)
     
-# class ActivationView(APIView):
-#     def post(self, request):
-#         serializer = ActivationSerializer(data = request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.activate() 
-#         return Response('Аккаунт успешно активирован', status=200)
+class ActivationView(APIView):
+    def post(self, request):
+        serializer = ActivationSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.activate() 
+        return Response('Аккаунт успешно активирован', status=200)
     
-# class LoginView(ObtainAuthToken):
-#     serializer_class = LoginSerializer
+class LoginView(ObtainAuthToken):
+    serializer_class = LoginSerializer
 
-# class LogoutView(APIView):
-#     permission_classes = [IsActivePermission]
-#     def post(self, request):
-#         user = request.user
-#         Token.objects.filter(user=user).delete()
-#         return Response('Вы вышли со своего аккаунта')
+class LogoutView(APIView):
+    permission_classes = [IsActivePermissions]
+    def post(self, request):
+        user = request.user
+        Token.objects.filter(user=user).delete()
+        return Response('Вы вышли со своего аккаунта')
     
 # class ChangePasswordView(APIView):
 #     permission_classes = (IsActivePermission, )
